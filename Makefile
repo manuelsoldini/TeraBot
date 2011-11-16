@@ -17,3 +17,6 @@ send:
 
 clean:
 	@rm -f recieve.hex recieve.bin send
+
+run:
+	python bot.py 
