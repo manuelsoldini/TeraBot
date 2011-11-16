@@ -1,3 +1,10 @@
+Some Dependencies:
+------------------
+
+avr-libc, avrdude, gcc-avr
+python-skype
+
+
 Compile:
 --------
 
