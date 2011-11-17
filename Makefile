@@ -11,7 +11,7 @@ program: recieve.hex
 	@rm -f recieve.hex
 
 send:
-	gcc send.c -O -o send
+	gcc send.c -O2 -o send
 	@chmod 777 send
 	@chmod +s send
 

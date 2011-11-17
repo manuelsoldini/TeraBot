@@ -2,11 +2,12 @@
 #include <stdlib.h>
 #include <sys/io.h>
 
-#define port 0x337
+#define port 0x378
 //#define port 0x0337
 
 int main(int argc, char **argv){
-    if (argc < 2){
+   octl(port, PPDRV_IOC_PINSET, LP_PIN01 | LP_PIN02);
+   if (argc < 2){
         printf("./send value \n\t value  --  [0 ~ 255]\n");
         return 1;
     }
