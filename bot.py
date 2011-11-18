@@ -11,7 +11,8 @@ import Skype4Py
 
 patts = [
          r"(?:please\s*)?(?:terabot)?\s*(?:open|abrir?)\s*(?:the|la)?\s*(?:(?:pod\s*)?bay)?\s*(?:puerta|door)",
-         r"(?:^hal$|\s+hal$|^hal\s+)",
+         r"a?brete\s*sesamo",
+         r"(?:(?:^|.*?\¡|.*?\¿|.*?\s+)hal(?:\s|\?|$|!|\,|\.|\:))",
          r"1\s*",
          r"2\s*"
         ]
@@ -21,8 +22,10 @@ for i, patt in enumerate(patts):
 
 def open_door(msj):
     ##serial.Serial("/dev/ttyS0").send(255)
-    #os.popen("./send 255")
     msj.Chat.SendMessage("Done!")
+    os.popen("./on")
+    time.sleep(0.1)
+    os.popen("./off")
 
 def my_name(msj):
     msj.Chat.SendMessage("My name is NOT HAL, i'm TeraBot")
@@ -32,9 +35,10 @@ def dummy(msj):
 
 dic = {
         patts[0] : open_door,
-        patts[1] : my_name,
-        patts[2] : dummy,
-        patts[3] : dummy
+        patts[1] : open_door,
+        patts[2] : my_name,
+        patts[3] : dummy,
+        patts[4] : dummy
       } 
 
 def nombrar(quien):
@@ -63,8 +67,8 @@ def autobot(mensaje):
     print(str(mensaje.FromDisplayName))
 
 def say_hi(nick, status):
-    print("Hola "+nick)
-    print(status)
+    print "Hola "+nick
+    skype.CreateChatWith(status.split(" ")[1]).SendMessage("Hola " + nick)
 
 def OnNotify(status):
     pyisland = ["manuel", "pablo", "sergio", "mariano"]

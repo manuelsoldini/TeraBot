@@ -1,7 +1,7 @@
 /*
 */
 
-#define F_CPU 8000000L
+#define F_CPU 100000L
 #include <avr/io.h>
 #include <util/delay.h>
 /* #include <avr/interrupt.h> */
@@ -10,11 +10,11 @@
 
 /* Defino los I/O */
 #define RELE  (1 << PD0)
-#define LED   (1 << PD1)
-#define INPUT (1 << PB0)
+#define LED   (1 << PD7)
+#define INPUT (1 << PB1)
 
 /* Sensar pulsador */
-#define PULL  ~(0xFF) & INPUT
+#define PULL  PINB & INPUT
 
 /* Operaciones del LED */
 #define ON    PORTD |=  LED
@@ -27,15 +27,15 @@
 void startup (){
 	/*Configura como salida RELE y LED INDICADOR*/
 	DDRD = RELE | LED;/* (1 << PD1) | (1 << PD0); */
-	DDRB  = ~INPUT; /* Configura como entrada PB0: ~(1 << PB0) */
+	DDRB  = 0x00; /* Configura como entrada PB0: ~(1 << PB0) */
 
-	PORTB = INPUT;
+	PORTB = 0xFF;
 	PORTD = 0x00;  /* apago todo en el puerto D */
 }
 
 uint8_t bounce(){
 	uint16_t count = 0;
-    uint8_t pos = 0, neg = 0;
+	uint8_t pos = 0, neg = 0;
 	while(count < N_TIMES){
 		if(PULL){
 			pos += 1;
@@ -54,6 +54,7 @@ void blink(uint8_t times, uint16_t time){
         ON;
         _delay_ms(time);
         OFF;
+	_delay_ms(time);
         count++;
     }
 }
@@ -66,15 +67,17 @@ void open(){
 }
 
 int main(){
-    startup();
-    blink(3, 600);
+	startup();
+	blink(3, 10);
 	while(1){
-		_delay_ms(15);
-        if(PULL){
-            if(bounce()){
-                open();
-            }
-        }
+//		_delay_ms(15);
+		if(PULL){
+			blink(4, 500);
+//			open();
+			ON;
+		}else{
+			OFF;	
+		}
 	}
 	return 0;
 }
