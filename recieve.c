@@ -1,84 +1,74 @@
 /*
-*/
+ * recieve.c
+ *    "TeraBot Atmega88 brain fuctions"
+ *    Copyleft -- Manuel Soldini <manuel.soldini@gmail.com>
+ * 
+ * See GPL v3 licence for more info.
+ *
+ */
 
-#define F_CPU 100000L
 #include <avr/io.h>
 #include <util/delay.h>
-/* #include <avr/interrupt.h> */
 
-#define N_TIMES 10
+/* Higher level defines*/
+#define OR ||
+#define AND &&
+#define NOT !
 
-/* Defino los I/O */
-#define RELE  (1 << PD0)
-#define LED   (1 << PD7)
-#define INPUT (1 << PB1)
+/* Define I/O */
+#define RELAY  (1 << PD7)
+#define LED   (1 << PD0)
+#define PULSE_INPUT (1 << PB1)
+#define LIGHT_INPUT (1 << PB5)
 
-/* Sensar pulsador */
-#define PULL  PINB & INPUT
+/* Logic defines */
+#define PARPORT !(PINB & PULSE_INPUT)
+#define HAND    (PINB & LIGHT_INPUT)
 
-/* Operaciones del LED */
-#define ON    PORTD |=  LED
-#define OFF   PORTD &= ~LED
+/* LED Operations */
+#define OFF    PORTD |=  LED
+#define ON     PORTD &= ~LED
 
-/* Operaciones del RELE */
-#define OPEN  PORTD |=  RELE
-#define CLOSE PORTD &= ~RELE
+/* RELAY Operations */
+#define OPEN  PORTD |=  RELAY
+#define CLOSE PORTD &= ~RELAY
 
 void startup (){
-	/*Configura como salida RELE y LED INDICADOR*/
-	DDRD = RELE | LED;/* (1 << PD1) | (1 << PD0); */
-	DDRB  = 0x00; /* Configura como entrada PB0: ~(1 << PB0) */
+    /* Configure RELAY and LED pins as output */
+    DDRD = RELAY | LED; /* (1 << PD1) | (1 << PD0); */
+    DDRB  = 0x00; /* Configure port B as input */
 
-	PORTB = 0xFF;
-	PORTD = 0x00;  /* apago todo en el puerto D */
+    PORTB = 0xFF; /* Turn on pull-ups */
+    PORTD = 0x00;  /* Turn on led and off relay on port D */
 }
 
-uint8_t bounce(){
-	uint16_t count = 0;
-	uint8_t pos = 0, neg = 0;
-	while(count < N_TIMES){
-		if(PULL){
-			pos += 1;
-		}else{
-            neg += 1;
-        }
-        _delay_ms(10);
-		count++;
-	}
-	return (pos > neg) ? 1 : 0;
-}
-
-void blink(uint8_t times, uint16_t time){
+void blink(uint8_t times, int time){
     uint8_t count = 0;
-    while(count < times){
+    while(count++ < times){
+        OFF;
+        _delay_ms(time);
         ON;
         _delay_ms(time);
-        OFF;
-	_delay_ms(time);
-        count++;
     }
 }
 
 void open(){
     OPEN;
-    blink(1, 300);
+    blink(2, 600);
     CLOSE;
-    blink(4, 300);
+    blink(2, 600);
 }
 
 int main(){
-	startup();
-	blink(3, 10);
-	while(1){
-//		_delay_ms(15);
-		if(PULL){
-			blink(4, 500);
-//			open();
-			ON;
-		}else{
-			OFF;	
-		}
-	}
-	return 0;
+    startup();
+    blink(3, 1000);
+    while(1){
+    	if(PARPORT OR HAND){
+    		open();
+    	}else{
+            _delay_ms(5);
+    	}
+    }
+    return 0;
 }
 

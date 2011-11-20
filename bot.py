@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-############
 
 import os
 import sys
@@ -10,7 +9,8 @@ import time
 import Skype4Py
 
 patts = [
-         r"(?:please\s*)?(?:terabot)?\s*(?:open|abrir?)\s*(?:the|la)?\s*(?:(?:pod\s*)?bay)?\s*(?:puerta|door)",
+         r".*?(?:please\s*)?(?:terabot)?\s*(?:open|abri(?:r|me)?)\
+           \s*(?:the|la)?\s*(?:(?:pod\s*)?bay)?\s*(?:puerta|door)",
          r"a?brete\s*sesamo",
          r"(?:(?:^|.*?\¡|.*?\¿|.*?\s+)hal(?:\s|\?|$|!|\,|\.|\:))",
          r"1\s*",

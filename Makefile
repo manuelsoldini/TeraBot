@@ -1,36 +1,56 @@
-MICRO = 88 
+TARGET = recieve
+MMCU = atmega88
+F_CPU = 1000000UL
+SUDOER = sudo
+#If rules.d is well configure SUDOER should be 
+#SUDOER = 
 
 
-all: recieve send
-	@echo "Done"
+CC = avr-gcc
+CFLAGS = -Os -g
+SRC = $(shell find .  -name '*.[c]')
+INC = $(shell find .  -name '*.[h]')
 
-recieve: recieve.c
-	avr-gcc -O -mmcu=atmega$(MICRO) -Wall -pedantic -o recieve.bin recieve.c
-	avr-objcopy -j .text -O ihex recieve.bin recieve.hex
-	@rm -f recieve.bin
+ifeq ($(MMCU), atmega8)
+	TARGET_P = m8
+	HFUSE = 0xd9
+	LFUSE = 0xe4
+	MMCU_N = 0
+else
+ifeq ($(MMCU), atmega88)
+	TARGET_P = m88
+	HFUSE = 0xdf
+	LFUSE = 0xe2
+	MMCU_N = 1
+else
+	$(error Target no soportado)
+endif
+endif
 
-program: recieve.hex
-	sudo avrdude -c usbtiny -p m$(MICRO) -F -U f:w:recieve.hex
-	@rm -f recieve.hex
+CDEFINES = -DMMCU=$(MMCU_N) -DF_CPU=$(F_CPU)
 
-fuses:
-	sudo avrdude -c usbtiny -p m$(MICRO) -F -U lfuse:w:0x62:m -U hfuse:w:0xdf:m #-U efuse:w:0xf9:m
 
-read:
-	@sudo avrdude -c usbtiny -p m$(MICRO) -F -U lfuse:r:lfuse:m -U hfuse:r:hfuse:m
-	@echo "lfuse"
-	@cat lfuse
-	@echo "hfuse"
-	@cat hfuse
-	@rm -f *fuse
+all: hex
 
-send:
-	gcc send.c -O2 -o send
-	@chmod 777 send
-	@chmod +s send
+bin: $(SRC) $(INC)
+	$(CC) $(CDEFINES) -mmcu=$(MMCU) $(CFLAGS) -o $(TARGET).bin $(SRC)
+	avr-size -d $(TARGET).bin
+
+hex: bin
+	avr-objcopy -j .text -O ihex $(TARGET).bin $(TARGET).hex
+
+program: hex
+	$(SUDOER) avrdude -c usbtiny -p $(TARGET_P) -F -U f:w:$(TARGET).hex
+
+program_dw: bin
+	avarice -w -j usb --erase --program --file $(TARGET).bin
+
+fuse:
+	$(SUDOER) avrdude -c usbtiny -p $(TARGET_P) -F -U lfuse:w:$(LFUSE):m -U hfuse:w:$(HFUSE):m
+
+asm: $(SRC) $(INC)
+	$(CC) $(CDEFINES) -mmcu=$(MMCU) $(CFLAGS) -S -o $(TARGET).s $<
 
 clean:
-	@rm -f recieve.hex recieve.bin send
+	rm -rf $(TARGET).hex $(TARGET).bin $(TARGET).s
 
-run:
-	python bot.py 
